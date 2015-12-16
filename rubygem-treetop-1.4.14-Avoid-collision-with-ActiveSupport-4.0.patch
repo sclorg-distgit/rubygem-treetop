@@ -1,0 +1,49 @@
+From 4ebd34c62342e04fb8c4452b20f48d6f8cb66c40 Mon Sep 17 00:00:00 2001
+From: Clifford Heath <clifford.heath@gmail.com>
+Date: Fri, 14 Jun 2013 11:45:53 +1000
+Subject: [PATCH] Inlined the String#indent method to avoid collision with
+ ActiveSupport 4.0
+
+---
+ lib/treetop/ruby_extensions/string.rb | 20 ++++++++------------
+ 1 file changed, 8 insertions(+), 12 deletions(-)
+
+diff --git a/lib/treetop/ruby_extensions/string.rb b/lib/treetop/ruby_extensions/string.rb
+index 9ea5dbf..15c1a41 100644
+--- a/lib/treetop/ruby_extensions/string.rb
++++ b/lib/treetop/ruby_extensions/string.rb
+@@ -22,23 +22,19 @@ def blank?
+   # The following methods are lifted from Facets 2.0.2
+   def tabto(n)
+     if self =~ /^( *)\S/
+-      indent(n - $1.length)
+-    else
+-      self
+-    end
+-  end
+-
+-  unless method_defined?(:indent)
+-    def indent(n)
+-      if n >= 0
+-        gsub(/^/, ' ' * n)
++      # Inlined due to collision with ActiveSupport 4.0: indent(n - $1.length)
++      m = n - $1.length
++      if m >= 0
++        gsub(/^/, ' ' * m)
+       else
+-        gsub(/^ {0,#{-n}}/, "")
++        gsub(/^ {0,#{-m}}/, "")
+       end
++    else
++      self
+     end
+   end
+ 
+   def treetop_camelize
+     to_s.gsub(/\/(.?)/){ "::" + $1.upcase }.gsub(/(^|_)(.)/){ $2.upcase }
+   end
+-end
+\ No newline at end of file
++end
+-- 
+1.8.1.6
